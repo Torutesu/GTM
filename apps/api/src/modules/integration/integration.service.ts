@@ -4,7 +4,7 @@ import { XConnector } from './connectors/x.connector';
 
 @Injectable()
 export class IntegrationService {
-  private stateStore = new Map<string, { tenantId: string; userId: string; platform: string }>();
+  private stateStore = new Map<string, { tenantId: string; userId: string; platform: string; codeVerifier?: string }>();
 
   constructor(
     private readonly prisma: PrismaService,
@@ -33,13 +33,23 @@ export class IntegrationService {
   }
 
   async getAuthUrl(tenantId: string, userId: string, platform: string, redirectUri: string) {
-    const state = crypto.randomUUID();
-    this.stateStore.set(state, { tenantId, userId, platform });
-    setTimeout(() => this.stateStore.delete(state), 10 * 60 * 1000);
-
     switch (platform) {
-      case 'X':
-        return { authUrl: this.xConnector.getAuthUrl(state, redirectUri), state };
+      case 'X': {
+        const state = crypto.randomUUID();
+        const authResult = this.xConnector.getAuthUrl(state, redirectUri);
+        const stored = this.xConnector.pkceStore.get(state);
+        this.stateStore.set(state, {
+          tenantId,
+          userId,
+          platform,
+          codeVerifier: stored?.codeVerifier,
+        });
+        setTimeout(() => {
+          this.stateStore.delete(state);
+          this.xConnector.pkceStore.delete(state);
+        }, 10 * 60 * 1000);
+        return { authUrl: authResult, state };
+      }
       default:
         throw new BadRequestException(`Unsupported platform: ${platform}`);
     }
@@ -53,7 +63,7 @@ export class IntegrationService {
     let tokens;
     switch (platform) {
       case 'X':
-        tokens = await this.xConnector.handleCallback(code);
+        tokens = await this.xConnector.handleCallback(code, stored.codeVerifier || '');
         break;
       default:
         throw new BadRequestException(`Unsupported platform: ${platform}`);

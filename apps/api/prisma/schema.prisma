@@ -96,6 +96,7 @@ model User {
   tenantId  String   @map("tenant_id")
   email     String   @unique
   name      String
+  password  String?
   role      UserRole @default(MEMBER)
   settings  Json     @default("{}")
   country   String?

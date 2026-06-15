@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import * as crypto from 'node:crypto';
 
 const TWITTER_AUTH_URL = 'https://twitter.com/i/oauth2/authorize';
 const TWITTER_TOKEN_URL = 'https://api.twitter.com/2/oauth2/token';
@@ -6,6 +7,8 @@ const TWITTER_API_URL = 'https://api.twitter.com/2';
 
 @Injectable()
 export class XConnector {
+  pkceStore = new Map<string, { codeVerifier: string; redirectUri: string }>();
+
   private get clientId() {
     return process.env.X_CLIENT_ID || '';
   }
@@ -14,26 +17,41 @@ export class XConnector {
     return process.env.X_CLIENT_SECRET || '';
   }
 
+  private generatePKCE(): { codeVerifier: string; codeChallenge: string } {
+    const codeVerifier = crypto.randomBytes(32).toString('base64url');
+    const codeChallenge = crypto
+      .createHash('sha256')
+      .update(codeVerifier)
+      .digest('base64url');
+    return { codeVerifier, codeChallenge };
+  }
+
   getAuthUrl(state: string, redirectUri: string): string {
+    const { codeVerifier, codeChallenge } = this.generatePKCE();
+    this.pkceStore.set(state, { codeVerifier, redirectUri });
+    setTimeout(() => this.pkceStore.delete(state), 10 * 60 * 1000);
+
     const params = new URLSearchParams({
       response_type: 'code',
       client_id: this.clientId,
       redirect_uri: redirectUri,
       scope: 'tweet.read tweet.write users.read offline.access',
       state,
-      code_challenge: 'challenge',
-      code_challenge_method: 'plain',
+      code_challenge: codeChallenge,
+      code_challenge_method: 'S256',
     });
     return `${TWITTER_AUTH_URL}?${params.toString()}`;
   }
 
-  async handleCallback(code: string): Promise<{
+  async handleCallback(code: string, codeVerifier: string): Promise<{
     accessToken: string;
     refreshToken: string;
     platformUserId: string;
     platformUserName: string;
     scope: string[];
   }> {
+    const redirectUri = process.env.X_REDIRECT_URI || '';
+
     const tokenResponse = await fetch(TWITTER_TOKEN_URL, {
       method: 'POST',
       headers: {
@@ -44,8 +62,8 @@ export class XConnector {
         code,
         grant_type: 'authorization_code',
         client_id: this.clientId,
-        redirect_uri: process.env.X_REDIRECT_URI || '',
-        code_verifier: 'challenge',
+        redirect_uri: redirectUri,
+        code_verifier: codeVerifier,
       }),
     });
 
@@ -89,10 +107,7 @@ export class XConnector {
     };
   }
 
-  async publishPost(
-    accessToken: string,
-    text: string,
-  ): Promise<{ postId: string }> {
+  async publishPost(accessToken: string, text: string): Promise<{ postId: string }> {
     const response = await fetch(`${TWITTER_API_URL}/tweets`, {
       method: 'POST',
       headers: {
@@ -118,10 +133,9 @@ export class XConnector {
       ...(sinceId && { since_id: sinceId }),
     });
 
-    const response = await fetch(
-      `${TWITTER_API_URL}/users/${userId}/tweets?${params}`,
-      { headers: { Authorization: `Bearer ${accessToken}` } },
-    );
+    const response = await fetch(`${TWITTER_API_URL}/users/${userId}/tweets?${params}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
 
     if (!response.ok) return [];
     const data = await response.json();

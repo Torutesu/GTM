@@ -64,7 +64,25 @@ export class GrowthStrategyAgent {
     });
 
     const result = await this.callLLM(prompt);
-    const parsed = JSON.parse(result);
+    const parsed = this.safeParseJSON(result, {
+      analysis: {
+        currentState: 'Analysis completed but JSON parsing failed.',
+        strengths: [],
+        weaknesses: [],
+        growthRate: 'Unable to determine',
+      },
+      growthLevers: [
+        {
+          lever: 'Review raw analysis output',
+          rationale: 'The AI output could not be parsed',
+          action: 'Check the OpenAI response format',
+          expectedImpact: 'Fixed analysis pipeline',
+          effort: 'low',
+          priority: 1,
+        },
+      ],
+      summary: 'Analysis parsing error. Please try again.',
+    });
 
     if (parsed.growthLevers) {
       for (const lever of parsed.growthLevers) {
@@ -107,6 +125,16 @@ export class GrowthStrategyAgent {
     connectedPlatforms: string[];
   }): string {
     return `${SYSTEM_PROMPT}\n\n## Context\n- Brand tone: ${context.brandTone}\n- Target KPIs: ${JSON.stringify(context.kpiTargets)}\n- Connected platforms: ${context.connectedPlatforms.join(', ')}\n- Recent posts (last 30):\n${context.postSummary}\n\nAnalyze my current performance and suggest growth levers.`;
+  }
+
+  private safeParseJSON(text: string, fallback: any): any {
+    try {
+      const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      return JSON.parse(cleaned);
+    } catch {
+      console.warn('Failed to parse LLM JSON output, using fallback');
+      return fallback;
+    }
   }
 
   private async callLLM(prompt: string): Promise<string> {

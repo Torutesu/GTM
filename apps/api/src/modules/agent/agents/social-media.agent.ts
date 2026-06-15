@@ -80,7 +80,11 @@ export class SocialMediaAgent {
     });
 
     const result = await this.callLLM(prompt);
-    const parsed = JSON.parse(result);
+    const parsed = this.safeParseJSON(result, {
+      weeklyPlan: [],
+      contentMix: { educational: 100 },
+      notes: 'Failed to parse AI output. Please try again.',
+    });
 
     if (parsed.weeklyPlan) {
       for (const slot of parsed.weeklyPlan) {
@@ -112,6 +116,16 @@ export class SocialMediaAgent {
     const systemWithFreq = SYSTEM_PROMPT.replace('{postFrequency}', String(context.frequency));
 
     return `${systemWithFreq}\n\n## Context\n- Brand tone: ${context.brandTone}\n- Platform: ${context.platform}\n- Strategy context: ${JSON.stringify(context.strategy)}\n- NG keywords: ${context.ngKeywords.join(', ')}\n- Recent top posts:\n${context.topPosts.map((t) => `  - "${t.slice(0, 80)}"`).join('\n')}\n\nCreate a weekly content plan for next week.`;
+  }
+
+  private safeParseJSON(text: string, fallback: any): any {
+    try {
+      const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      return JSON.parse(cleaned);
+    } catch {
+      console.warn('Failed to parse LLM JSON output, using fallback');
+      return fallback;
+    }
   }
 
   private async callLLM(prompt: string): Promise<string> {

@@ -4,6 +4,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { PostService } from './post.service';
+import { CreatePostDto, UpdatePostDto } from './dto';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 @Controller('posts')
@@ -35,17 +36,17 @@ export class PostController {
   @HttpPost()
   async create(
     @CurrentUser() user: { id: string; tenantId: string },
-    @Body() data: { contentText: string; platform: string; integrationAccountId?: string; scheduledAt?: string },
+    @Body() dto: CreatePostDto,
   ) {
-    return this.postService.create(user.tenantId, user.id, data);
+    return this.postService.create(user.tenantId, user.id, dto);
   }
 
   @Patch(':id')
   async update(
     @Param('id') id: string,
-    @Body() data: { contentText?: string; scheduledAt?: string },
+    @Body() dto: UpdatePostDto,
   ) {
-    return this.postService.update(id, data);
+    return this.postService.update(id, dto);
   }
 
   @Delete(':id')

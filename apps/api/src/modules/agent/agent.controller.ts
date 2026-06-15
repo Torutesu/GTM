@@ -1,6 +1,7 @@
 import { Controller, Post, Get, Param, Body, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AgentService } from './agent.service';
+import { ExecuteAgentDto } from './dto';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 @Controller('agents')
@@ -11,9 +12,9 @@ export class AgentController {
   @Post('execute')
   async execute(
     @CurrentUser() user: { id: string; tenantId: string },
-    @Body() body: { agentType: string; input: Record<string, unknown>; campaignId?: string },
+    @Body() dto: ExecuteAgentDto,
   ) {
-    return this.agentService.execute(user.tenantId, user.id, body.agentType, body.input, body.campaignId);
+    return this.agentService.execute(user.tenantId, user.id, dto.agentType, dto.input, dto.campaignId);
   }
 
   @Get('tasks')

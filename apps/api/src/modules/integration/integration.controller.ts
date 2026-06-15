@@ -1,8 +1,9 @@
 import {
-  Controller, Get, Post, Delete, Param, Body, Query, UseGuards,
+  Controller, Get, Post, Delete, Param, Body, UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { IntegrationService } from './integration.service';
+import { GetAuthUrlDto, CallbackDto } from './dto';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 @Controller('integrations')
@@ -18,20 +19,17 @@ export class IntegrationController {
   @Post('auth-url')
   async getAuthUrl(
     @CurrentUser() user: { id: string; tenantId: string },
-    @Body('platform') platform: string,
-    @Body('redirectUri') redirectUri: string,
+    @Body() dto: GetAuthUrlDto,
   ) {
-    return this.integrationService.getAuthUrl(user.tenantId, user.id, platform, redirectUri);
+    return this.integrationService.getAuthUrl(user.tenantId, user.id, dto.platform, dto.redirectUri);
   }
 
   @Post('callback')
   async handleCallback(
     @CurrentUser() user: { tenantId: string },
-    @Body('platform') platform: string,
-    @Body('code') code: string,
-    @Body('state') state: string,
+    @Body() dto: CallbackDto,
   ) {
-    return this.integrationService.handleCallback(user.tenantId, platform, code, state);
+    return this.integrationService.handleCallback(user.tenantId, dto.platform, dto.code, dto.state);
   }
 
   @Get(':id')

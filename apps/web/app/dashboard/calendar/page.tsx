@@ -20,6 +20,8 @@ export default function CalendarPage() {
     }
   }
 
+  const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -36,24 +38,27 @@ export default function CalendarPage() {
       </div>
 
       <div className="grid grid-cols-7 gap-3">
-        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
-          <div key={day} className="rounded-xl border border-gray-200 bg-white p-4">
-            <h3 className="text-sm font-semibold text-gray-900">{day}</h3>
-            <div className="mt-2 space-y-2">
-              {posts
-                .filter((p) => {
-                  const d = p.createdAt ? new Date(p.createdAt) : new Date();
-                  return d.getDay() === ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(day);
-                })
-                .map((post) => (
-                  <div key={post.id} className="rounded bg-gray-50 p-2 text-xs">
-                    <p className="truncate text-gray-900">{post.contentText}</p>
-                    <span className="text-gray-500">{post.status}</span>
-                  </div>
-                ))}
+        {dayNames.map((day, idx) => {
+          const dayIndex = [1, 2, 3, 4, 5, 6, 0][idx];
+          return (
+            <div key={day} className="rounded-xl border border-gray-200 bg-white p-4">
+              <h3 className="text-sm font-semibold text-gray-900">{day}</h3>
+              <div className="mt-2 space-y-2">
+                {posts
+                  .filter((p) => {
+                    const d = p.createdAt ? new Date(p.createdAt) : new Date();
+                    return d.getDay() === dayIndex;
+                  })
+                  .map((post: any) => (
+                    <div key={post.id} className="rounded bg-gray-50 p-2 text-xs">
+                      <p className="truncate text-gray-900">{post.contentText}</p>
+                      <span className="text-gray-500">{post.status}</span>
+                    </div>
+                  ))}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
