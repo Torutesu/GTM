@@ -9,5 +9,18 @@
     "startCommand": "node dist/main.js",
     "healthcheckPath": "/api/v1/auth/me",
     "restartPolicyType": "ON_FAILURE"
+  },
+  "environments": {
+    "staging": {
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "Dockerfile"
+      },
+      "deploy": {
+        "numReplicas": 1,
+        "startCommand": "node dist/main.js",
+        "envFile": ".env.staging"
+      }
+    }
   }
 }

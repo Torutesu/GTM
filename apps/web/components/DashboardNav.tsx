@@ -10,6 +10,7 @@ interface DashboardNavProps {
 export function DashboardNav({ user, onLogout }: DashboardNavProps) {
   const navItems = [
     { label: 'Dashboard', href: '/dashboard' },
+    { label: 'AI Agents', href: '/dashboard/agents' },
     { label: 'Posts', href: '/dashboard/posts' },
     { label: 'Calendar', href: '/dashboard/calendar' },
     { label: 'Chat', href: '/dashboard/chat' },
