@@ -22,7 +22,7 @@ export class FeedGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  handleDisconnect(client: Socket) {
+  handleDisconnect(_client: Socket) {
     // cleanup handled by Socket.IO
   }
 

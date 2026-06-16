@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import * as crypto from 'node:crypto';
 
 const FB_AUTH_URL = 'https://www.facebook.com/dialog/oauth';
 const FB_TOKEN_URL = 'https://graph.facebook.com/v19.0/oauth/access_token';

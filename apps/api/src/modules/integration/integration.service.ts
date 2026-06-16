@@ -106,7 +106,7 @@ export class IntegrationService {
   }
 
   async disconnect(id: string) {
-    const account = await this.findById(id);
+    await this.findById(id);
     await this.prisma.integrationAccount.update({
       where: { id },
       data: { status: 'REVOKED', deletedAt: new Date() },

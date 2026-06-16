@@ -20,7 +20,7 @@ export class UserService {
   }
 
   async update(id: string, data: { name?: string; settings?: Prisma.JsonValue }) {
-    const user = await this.findById(id);
+    await this.findById(id);
     return this.prisma.user.update({
       where: { id },
       data: {

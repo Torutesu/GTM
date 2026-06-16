@@ -73,7 +73,7 @@ export class PostService {
   }
 
   async update(id: string, data: { contentText?: string; scheduledAt?: string }) {
-    const post = await this.findById(id);
+    await this.findById(id);
     return this.prisma.post.update({
       where: { id },
       data: {
@@ -84,12 +84,12 @@ export class PostService {
   }
 
   async delete(id: string) {
-    const post = await this.findById(id);
+    await this.findById(id);
     await this.prisma.post.update({ where: { id }, data: { deletedAt: new Date() } });
   }
 
   async updateStatus(id: string, status: string) {
-    const post = await this.findById(id);
+    await this.findById(id);
     return this.prisma.post.update({ where: { id }, data: { status: status as any } });
   }
 
@@ -137,7 +137,7 @@ export class PostService {
   }
 
   async schedule(id: string, scheduledAt: Date) {
-    const post = await this.findById(id);
+    await this.findById(id);
     return this.prisma.post.update({
       where: { id },
       data: { scheduledAt, status: 'SCHEDULED' },

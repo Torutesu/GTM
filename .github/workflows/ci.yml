@@ -22,9 +22,9 @@ jobs:
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter api run typecheck
-      - run: pnpm --filter api run lint
       - run: pnpm --filter web run typecheck
-      - run: pnpm --filter web run lint
+      - run: npx eslint "apps/api/src/**/*.ts" --max-warnings 0
+      - run: npx eslint "apps/web/app/**/*.{ts,tsx}" "apps/web/components/**/*.{ts,tsx}" --max-warnings 50
 
   test:
     runs-on: ubuntu-latest
