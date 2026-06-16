@@ -4,6 +4,10 @@ import { GrowthStrategyAgent } from './agents/growth-strategy.agent';
 import { SocialMediaAgent } from './agents/social-media.agent';
 import { CompetitorIntelligenceAgent } from './agents/competitor-intelligence.agent';
 import { SeoGeoAgent } from './agents/seo-geo.agent';
+import { SocialListeningAgent } from './agents/social-listening.agent';
+import { IndustryNewsAgent } from './agents/industry-news.agent';
+import { OutreachAgent } from './agents/outreach.agent';
+import { CvrOptimizationAgent } from './agents/cvr-optimization.agent';
 
 @Injectable()
 export class AgentService {
@@ -15,12 +19,20 @@ export class AgentService {
     private readonly socialMediaAgent: SocialMediaAgent,
     private readonly competitorIntelligenceAgent: CompetitorIntelligenceAgent,
     private readonly seoGeoAgent: SeoGeoAgent,
+    private readonly socialListeningAgent: SocialListeningAgent,
+    private readonly industryNewsAgent: IndustryNewsAgent,
+    private readonly outreachAgent: OutreachAgent,
+    private readonly cvrOptimizationAgent: CvrOptimizationAgent,
   ) {
     this.agents = {
       growth_strategy: growthStrategyAgent,
       social_media: socialMediaAgent,
       competitor_intelligence: competitorIntelligenceAgent,
       seo_geo: seoGeoAgent,
+      social_listening: socialListeningAgent,
+      industry_news: industryNewsAgent,
+      outreach: outreachAgent,
+      cvr_optimization: cvrOptimizationAgent,
     };
   }
 
