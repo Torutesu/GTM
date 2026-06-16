@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import * as crypto from 'node:crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { XConnector } from './connectors/x.connector';
+import { InstagramConnector } from './connectors/instagram.connector';
 
 @Injectable()
 export class IntegrationService {
@@ -9,6 +11,7 @@ export class IntegrationService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly xConnector: XConnector,
+    private readonly instagramConnector: InstagramConnector,
   ) {}
 
   async findByTenant(tenantId: string) {
@@ -38,17 +41,16 @@ export class IntegrationService {
         const state = crypto.randomUUID();
         const authResult = this.xConnector.getAuthUrl(state, redirectUri);
         const stored = this.xConnector.pkceStore.get(state);
-        this.stateStore.set(state, {
-          tenantId,
-          userId,
-          platform,
-          codeVerifier: stored?.codeVerifier,
-        });
-        setTimeout(() => {
-          this.stateStore.delete(state);
-          this.xConnector.pkceStore.delete(state);
-        }, 10 * 60 * 1000);
+        this.stateStore.set(state, { tenantId, userId, platform, codeVerifier: stored?.codeVerifier });
+        this.clearStateAfter(state, 10 * 60 * 1000);
         return { authUrl: authResult, state };
+      }
+      case 'INSTAGRAM': {
+        const state = crypto.randomUUID();
+        const authUrl = this.instagramConnector.getAuthUrl(state, redirectUri);
+        this.stateStore.set(state, { tenantId, userId, platform });
+        this.clearStateAfter(state, 10 * 60 * 1000);
+        return { authUrl, state };
       }
       default:
         throw new BadRequestException(`Unsupported platform: ${platform}`);
@@ -64,6 +66,9 @@ export class IntegrationService {
     switch (platform) {
       case 'X':
         tokens = await this.xConnector.handleCallback(code, stored.codeVerifier || '');
+        break;
+      case 'INSTAGRAM':
+        tokens = await this.instagramConnector.handleCallback(code);
         break;
       default:
         throw new BadRequestException(`Unsupported platform: ${platform}`);
@@ -111,5 +116,9 @@ export class IntegrationService {
   async sync(id: string) {
     const account = await this.findById(id);
     return { message: `Sync queued for ${account.platform}`, accountId: id };
+  }
+
+  private clearStateAfter(state: string, ms: number) {
+    setTimeout(() => this.stateStore.delete(state), ms);
   }
 }

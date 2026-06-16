@@ -2,6 +2,8 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { GrowthStrategyAgent } from './agents/growth-strategy.agent';
 import { SocialMediaAgent } from './agents/social-media.agent';
+import { CompetitorIntelligenceAgent } from './agents/competitor-intelligence.agent';
+import { SeoGeoAgent } from './agents/seo-geo.agent';
 
 @Injectable()
 export class AgentService {
@@ -11,10 +13,14 @@ export class AgentService {
     private readonly prisma: PrismaService,
     private readonly growthStrategyAgent: GrowthStrategyAgent,
     private readonly socialMediaAgent: SocialMediaAgent,
+    private readonly competitorIntelligenceAgent: CompetitorIntelligenceAgent,
+    private readonly seoGeoAgent: SeoGeoAgent,
   ) {
     this.agents = {
       growth_strategy: growthStrategyAgent,
       social_media: socialMediaAgent,
+      competitor_intelligence: competitorIntelligenceAgent,
+      seo_geo: seoGeoAgent,
     };
   }
 

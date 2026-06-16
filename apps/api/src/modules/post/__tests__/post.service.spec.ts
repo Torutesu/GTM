@@ -3,6 +3,7 @@ import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { PostService } from '../post.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { XConnector } from '../../integration/connectors/x.connector';
+import { InstagramConnector } from '../../integration/connectors/instagram.connector';
 
 describe('PostService', () => {
   let service: PostService;
@@ -25,6 +26,12 @@ describe('PostService', () => {
     publishPost: jest.fn(),
   };
 
+  const mockInstagramConnector = {
+    publishPost: jest.fn(),
+    getAuthUrl: jest.fn(),
+    handleCallback: jest.fn(),
+  };
+
   beforeEach(async () => {
     jest.clearAllMocks();
     const module = await Test.createTestingModule({
@@ -32,6 +39,7 @@ describe('PostService', () => {
         PostService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: XConnector, useValue: mockXConnector },
+        { provide: InstagramConnector, useValue: mockInstagramConnector },
       ],
     }).compile();
 

@@ -1,12 +1,14 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { XConnector } from '../integration/connectors/x.connector';
+import { InstagramConnector } from '../integration/connectors/instagram.connector';
 
 @Injectable()
 export class PostService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly xConnector: XConnector,
+    private readonly instagramConnector: InstagramConnector,
   ) {}
 
   async findByTenant(tenantId: string, options: {
@@ -99,21 +101,32 @@ export class PostService {
       throw new BadRequestException(`Cannot publish post with status ${p.status}`);
     }
 
-    if (p.platform === 'X' && p.integrationAccountId) {
+    if (p.integrationAccountId) {
       const account = await this.prisma.integrationAccount.findUnique({
         where: { id: p.integrationAccountId },
       });
       if (!account) throw new NotFoundException('Integration account not found');
 
-      const result = await this.xConnector.publishPost(account.accessToken, p.contentText);
+      let result: { postId: string };
+
+      switch (p.platform) {
+        case 'X':
+          result = await this.xConnector.publishPost(account.accessToken, p.contentText);
+          break;
+        case 'INSTAGRAM':
+          result = await this.instagramConnector.publishPost(
+            account.accessToken,
+            account.platformUserId || '',
+            p.contentText,
+          );
+          break;
+        default:
+          throw new BadRequestException(`Publishing not supported for platform: ${p.platform}`);
+      }
 
       return this.prisma.post.update({
         where: { id },
-        data: {
-          status: 'PUBLISHED',
-          postedAt: new Date(),
-          platformPostId: result.postId,
-        },
+        data: { status: 'PUBLISHED', postedAt: new Date(), platformPostId: result.postId },
       });
     }
 
