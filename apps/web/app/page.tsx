@@ -3,7 +3,7 @@
 import { useI18n } from '../lib/i18n';
 
 export default function Home() {
-  const { locale, setLocale } = useI18n();
+  const { t, locale, setLocale } = useI18n();
   const plans = [
     { name: 'Free', price: '$0', period: '/mo', desc: 'Perfect for getting started', features: ['1 social account', '5 AI-generated posts/mo', 'Basic analytics', 'Community support'], cta: 'Get Started', href: '/register', featured: false },
     { name: 'Pro', price: '$29', period: '/mo', desc: 'For growing teams', features: ['Up to 5 social accounts', 'Unlimited AI posts', 'Advanced analytics', 'Priority support', 'Content calendar', 'AI agent access'], cta: 'Start Free Trial', href: '/register', featured: true },
@@ -22,13 +22,13 @@ export default function Home() {
       <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold tracking-tight text-brand-600">GON</span>
+            <span className="text-2xl font-bold tracking-tight text-brand-600">{t('app.name')}</span>
           </div>
           <nav className="hidden items-center gap-8 sm:flex">
-            <a href="#features" className="text-sm font-medium text-gray-600 hover:text-gray-900">Features</a>
-            <a href="#pricing" className="text-sm font-medium text-gray-600 hover:text-gray-900">Pricing</a>
-            <a href="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900">Sign In</a>
-            <a href="/register" className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 transition-colors">Get Started</a>
+            <a href="#features" className="text-sm font-medium text-gray-600 hover:text-gray-900">{t('lp.features')}</a>
+            <a href="#pricing" className="text-sm font-medium text-gray-600 hover:text-gray-900">{t('lp.pricing')}</a>
+            <a href="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900">{t('lp.signIn')}</a>
+            <a href="/register" className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700 transition-colors">{t('lp.getStarted')}</a>
             <select className="rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-500 bg-white focus:outline-none"
               value={locale} onChange={(e) => setLocale(e.target.value as 'en' | 'ja')}>
               <option value="en">EN</option>
@@ -42,30 +42,29 @@ export default function Home() {
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(45%_40%_at_50%_60%,rgba(99,102,241,0.08),transparent)]" />
         <div className="mx-auto max-w-4xl text-center">
           <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
-            Your entire marketing team,
-            <span className="block text-brand-600">powered by AI</span>
+            {t('lp.hero.title1')}
+            <span className="block text-brand-600">{t('lp.hero.title2')}</span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-gray-600">
-            GON connects your social accounts, generates content strategies with 8 specialized AI agents,
-            schedules posts, and optimizes performance — all autonomously.
+            {t('lp.hero.desc')}
           </p>
           <div className="mt-10 flex items-center justify-center gap-4">
             <a href="/register" className="rounded-lg bg-brand-600 px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-600/25 hover:bg-brand-700 transition-all">
-              Start Free — No Credit Card
+              {t('lp.hero.cta')}
             </a>
             <a href="#features" className="rounded-lg border border-gray-300 px-8 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
-              See Features
+              {t('lp.hero.seeFeatures')}
             </a>
           </div>
-          <p className="mt-4 text-sm text-gray-400">Free plan includes 5 AI-generated posts and 1 social account</p>
+          <p className="mt-4 text-sm text-gray-400">{t('lp.hero.freeNote')}</p>
         </div>
       </section>
 
       <section id="features" className="border-t border-gray-100 bg-gray-50/50 px-4 py-20 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <div className="text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900">Everything you need to win on social</h2>
-            <p className="mt-4 text-lg text-gray-600">Eight specialized AI agents working 24/7 to grow your brand</p>
+            <h2 className="text-3xl font-bold tracking-tight text-gray-900">{t('lp.features.title')}</h2>
+            <p className="mt-4 text-lg text-gray-600">{t('lp.features.subtitle')}</p>
           </div>
           <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((f) => (
@@ -82,19 +81,19 @@ export default function Home() {
       <section id="how-it-works" className="px-4 py-20 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <div className="text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900">How it works</h2>
-            <p className="mt-4 text-lg text-gray-600">Three steps to AI-powered marketing</p>
+            <h2 className="text-3xl font-bold tracking-tight text-gray-900">{t('lp.how.title')}</h2>
+            <p className="mt-4 text-lg text-gray-600">{t('lp.how.subtitle')}</p>
           </div>
           <div className="mt-16 grid gap-8 md:grid-cols-3">
             {[
-              { step: '01', title: 'Connect Accounts', desc: 'Link X, Instagram, and more with one click. No API keys needed for demo mode.' },
-              { step: '02', title: 'AI Generates Strategy', desc: 'Your 8 AI agents analyze your brand, competitors, and industry to create a content plan.' },
-              { step: '03', title: 'Publish & Optimize', desc: 'Review AI-generated posts, schedule them, and watch engagement grow automatically.' },
+              { step: '01', titleKey: 'lp.how.step1.title', descKey: 'lp.how.step1.desc' },
+              { step: '02', titleKey: 'lp.how.step2.title', descKey: 'lp.how.step2.desc' },
+              { step: '03', titleKey: 'lp.how.step3.title', descKey: 'lp.how.step3.desc' },
             ].map((s) => (
               <div key={s.step} className="text-center">
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-brand-100 text-lg font-bold text-brand-600">{s.step}</div>
-                <h3 className="mt-6 text-lg font-semibold text-gray-900">{s.title}</h3>
-                <p className="mt-2 text-sm text-gray-600">{s.desc}</p>
+                <h3 className="mt-6 text-lg font-semibold text-gray-900">{t(s.titleKey)}</h3>
+                <p className="mt-2 text-sm text-gray-600">{t(s.descKey)}</p>
               </div>
             ))}
           </div>
@@ -104,8 +103,8 @@ export default function Home() {
       <section id="pricing" className="border-t border-gray-100 bg-gray-50/50 px-4 py-20 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <div className="text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900">Simple, transparent pricing</h2>
-            <p className="mt-4 text-lg text-gray-600">Start free, upgrade when you grow</p>
+            <h2 className="text-3xl font-bold tracking-tight text-gray-900">{t('lp.pricing.title')}</h2>
+            <p className="mt-4 text-lg text-gray-600">{t('lp.pricing.subtitle')}</p>
           </div>
           <div className="mt-16 grid gap-8 lg:grid-cols-3">
             {plans.map((plan) => (
@@ -138,9 +137,9 @@ export default function Home() {
 
       <footer className="border-t border-gray-100 px-4 py-12 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl text-center">
-          <span className="text-lg font-bold text-brand-600">GON</span>
-          <p className="mt-2 text-sm text-gray-500">Autonomous AI-powered marketing platform</p>
-          <p className="mt-6 text-xs text-gray-400">&copy; {new Date().getFullYear()} GON. All rights reserved.</p>
+          <span className="text-lg font-bold text-brand-600">{t('app.name')}</span>
+          <p className="mt-2 text-sm text-gray-500">{t('lp.footer.tagline')}</p>
+          <p className="mt-6 text-xs text-gray-400">&copy; {new Date().getFullYear()} GON. {t('lp.footer.copyright')}</p>
         </div>
       </footer>
     </div>

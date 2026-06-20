@@ -12,19 +12,19 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
-  const { locale, setLocale } = useI18n();
+  const { t, locale, setLocale } = useI18n();
   const router = useRouter();
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError('');
-    if (!email || !password) { setError('Please fill in all fields'); return; }
+    if (!email || !password) { setError(t('login.error.fillFields')); return; }
     setLoading(true);
     try {
       await login(email, password);
       router.push('/dashboard');
     } catch (err: any) {
-      let msg = err.message || 'Login failed';
+      let msg = err.message || t('login.error.failed');
       try { const p = JSON.parse(msg); msg = p?.error?.message || p?.message || msg; } catch {}
       setError(msg);
     } finally {
@@ -47,8 +47,8 @@ export default function LoginPage() {
               </div>
               <div className="flex h-[calc(100%-24px)] items-center justify-center">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-brand-600">GON</div>
-                  <div className="mt-1 text-xs text-gray-400">AI Marketing Dashboard</div>
+                  <div className="text-3xl font-bold text-brand-600">{t('app.name')}</div>
+                  <div className="mt-1 text-xs text-gray-400">{t('app.tagline')}</div>
                 </div>
               </div>
             </div>
@@ -79,9 +79,9 @@ export default function LoginPage() {
               </div>
             </div>
           </div>
-          <h2 className="mt-12 text-3xl font-bold tracking-tight text-gray-800">Welcome Back</h2>
+          <h2 className="mt-12 text-3xl font-bold tracking-tight text-gray-800">{t('login.welcome')}</h2>
           <p className="mt-4 text-base leading-relaxed text-gray-500">
-            Sign in to continue managing your AI-powered marketing campaigns.
+            {t('login.welcomeDesc')}
           </p>
           <div className="mt-8 flex items-center justify-center gap-2">
             <button className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-300 text-gray-400 hover:border-gray-400 hover:text-gray-600 transition-colors">
@@ -105,7 +105,7 @@ export default function LoginPage() {
           <div className="flex items-center justify-between px-8 pt-8">
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">G</div>
-              <span className="text-lg font-bold text-gray-800">GON</span>
+              <span className="text-lg font-bold text-gray-800">{t('app.name')}</span>
             </div>
             <select className="rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-500 bg-white focus:outline-none"
               value={locale} onChange={(e) => setLocale(e.target.value as 'en' | 'ja')}>
@@ -115,7 +115,7 @@ export default function LoginPage() {
           </div>
 
           <div className="px-8 pt-6">
-            <h1 className="text-xl font-bold text-gray-900">Sign in</h1>
+            <h1 className="text-xl font-bold text-gray-900">{t('login.title')}</h1>
           </div>
 
           <div className="px-8 pt-5">
@@ -145,17 +145,17 @@ export default function LoginPage() {
             )}
 
             <div>
-              <label htmlFor="email" className="sr-only">Email</label>
+              <label htmlFor="email" className="sr-only">{t('login.email')}</label>
               <input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
                 className="block w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm shadow-sm placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-0"
-                placeholder="Email" autoComplete="email" />
+                placeholder={t('login.email')} autoComplete="email" />
             </div>
 
             <div className="relative">
-              <label htmlFor="password" className="sr-only">Password</label>
+              <label htmlFor="password" className="sr-only">{t('login.password')}</label>
               <input id="password" type={showPw ? 'text' : 'password'} required value={password} onChange={(e) => setPassword(e.target.value)}
                 className="block w-full rounded-xl border border-gray-200 px-4 py-2.5 pr-10 text-sm shadow-sm placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-0"
-                placeholder="Password" autoComplete="current-password" />
+                placeholder={t('login.password')} autoComplete="current-password" />
               <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                 {showPw ? (
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
@@ -167,12 +167,12 @@ export default function LoginPage() {
 
             <button type="submit" disabled={loading}
               className="w-full rounded-xl bg-black px-4 py-2.5 text-sm font-semibold text-white hover:bg-gray-800 transition-colors disabled:opacity-40">
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? t('login.signingIn') : t('login.signIn')}
             </button>
 
             <p className="pt-2 text-center text-xs text-gray-500">
-              Don&apos;t have an account?{' '}
-              <a href="/register" className="underline text-gray-700 hover:text-gray-900">Create one</a>
+              {t('login.noAccount')}{' '}
+              <a href="/register" className="underline text-gray-700 hover:text-gray-900">{t('login.createOne')}</a>
             </p>
           </form>
         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent, useRef } from 'react';
+import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../hooks/useAuth';
 import { useI18n } from '../../lib/i18n';
@@ -23,22 +23,22 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
-  const { locale, setLocale } = useI18n();
+  const { t, locale, setLocale } = useI18n();
   const router = useRouter();
   const strength = passwordStrength(password);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError('');
-    if (!name || !email || !password) { setError('Please fill in all fields'); return; }
-    if (password.length < 8) { setError('Password must be at least 8 characters'); return; }
-    if (!agree) { setError('You must agree to the Terms of Service'); return; }
+    if (!name || !email || !password) { setError(t('register.error.fillFields')); return; }
+    if (password.length < 8) { setError(t('register.error.passwordLength')); return; }
+    if (!agree) { setError(t('register.error.agreeTerms')); return; }
     setLoading(true);
     try {
       await register(email, password, name);
       router.push('/onboarding');
     } catch (err: any) {
-      let msg = err.message || 'Registration failed';
+      let msg = err.message || t('register.error.failed');
       try { const p = JSON.parse(msg); msg = p?.error?.message || p?.message || msg; } catch {}
       setError(msg);
     } finally {
@@ -52,10 +52,8 @@ export default function RegisterPage() {
       <div className="hidden w-1/2 flex-col items-center justify-center p-12 lg:flex">
         <div className="max-w-lg text-center">
           <div className="relative mx-auto h-72 w-80">
-            {/* Pedestal */}
             <div className="absolute bottom-0 left-1/2 h-4 w-48 -translate-x-1/2 rounded-full bg-black/10 blur-sm" />
             <div className="absolute bottom-1 left-1/2 h-3 w-40 -translate-x-1/2 rounded-full bg-black/8 blur-[2px]" />
-            {/* Laptop screen */}
             <div className="absolute bottom-4 left-1/2 h-44 w-72 -translate-x-1/2 rounded-xl border-2 border-gray-300 bg-white shadow-2xl shadow-black/15">
               <div className="flex h-6 items-center gap-1.5 border-b border-gray-100 px-3">
                 <div className="h-2 w-2 rounded-full bg-red-400" />
@@ -64,15 +62,13 @@ export default function RegisterPage() {
               </div>
               <div className="flex h-[calc(100%-24px)] items-center justify-center">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-brand-600">GON</div>
-                  <div className="mt-1 text-xs text-gray-400">AI Marketing Dashboard</div>
+                  <div className="text-3xl font-bold text-brand-600">{t('app.name')}</div>
+                  <div className="mt-1 text-xs text-gray-400">{t('app.tagline')}</div>
                 </div>
               </div>
             </div>
-            {/* Laptop base */}
             <div className="absolute bottom-3 left-1/2 h-3 w-64 -translate-x-1/2 rounded-b-lg bg-gray-300 shadow-md" />
             <div className="absolute bottom-0 left-1/2 h-4 w-20 -translate-x-1/2 rounded-t-sm bg-gray-400" />
-            {/* Floating window 1 */}
             <div className="absolute -left-4 top-4 h-28 w-44 rounded-xl border border-white/60 bg-white/70 shadow-lg shadow-black/10 backdrop-blur-xl">
               <div className="flex h-5 items-center gap-1 border-b border-gray-100/50 px-2">
                 <div className="h-1.5 w-1.5 rounded-full bg-red-300" />
@@ -85,7 +81,6 @@ export default function RegisterPage() {
                 <div className="h-1.5 w-24 rounded bg-gray-100" />
               </div>
             </div>
-            {/* Floating window 2 */}
             <div className="absolute -right-3 bottom-24 h-32 w-40 rounded-xl border border-white/60 bg-white/70 shadow-lg shadow-black/10 backdrop-blur-xl">
               <div className="flex h-5 items-center gap-1 border-b border-gray-100/50 px-2">
                 <div className="h-1.5 w-1.5 rounded-full bg-red-300" />
@@ -101,14 +96,12 @@ export default function RegisterPage() {
           </div>
 
           <h2 className="mt-12 text-3xl font-bold tracking-tight text-gray-800">
-            AI-Powered Marketing
+            {t('register.hero.title')}
           </h2>
           <p className="mt-4 text-base leading-relaxed text-gray-500">
-            Connect your social accounts, generate content strategies with 8 specialized AI agents,
-            schedule posts, and optimize performance — all autonomously.
+            {t('register.hero.desc')}
           </p>
 
-          {/* Carousel dots */}
           <div className="mt-8 flex items-center justify-center gap-2">
             <button className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-300 text-gray-400 hover:border-gray-400 hover:text-gray-600 transition-colors">
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
@@ -132,7 +125,7 @@ export default function RegisterPage() {
           <div className="flex items-center justify-between px-8 pt-8">
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">G</div>
-              <span className="text-lg font-bold text-gray-800">GON</span>
+              <span className="text-lg font-bold text-gray-800">{t('app.name')}</span>
             </div>
             <select className="rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-500 bg-white focus:outline-none"
               value={locale} onChange={(e) => setLocale(e.target.value as 'en' | 'ja')}>
@@ -143,7 +136,7 @@ export default function RegisterPage() {
 
           {/* Title */}
           <div className="px-8 pt-6">
-            <h1 className="text-xl font-bold text-gray-900">Create an account</h1>
+            <h1 className="text-xl font-bold text-gray-900">{t('register.title')}</h1>
           </div>
 
           {/* Google button */}
@@ -176,24 +169,24 @@ export default function RegisterPage() {
             )}
 
             <div>
-              <label htmlFor="name" className="sr-only">Full name</label>
+              <label htmlFor="name" className="sr-only">{t('register.name')}</label>
               <input id="name" type="text" required value={name} onChange={(e) => setName(e.target.value)}
                 className="block w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm shadow-sm placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-0"
-                placeholder="Full name" autoComplete="name" />
+                placeholder={t('register.name')} autoComplete="name" />
             </div>
 
             <div>
-              <label htmlFor="email" className="sr-only">Email</label>
+              <label htmlFor="email" className="sr-only">{t('register.email')}</label>
               <input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
                 className="block w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm shadow-sm placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-0"
-                placeholder="Email" autoComplete="email" />
+                placeholder={t('register.email')} autoComplete="email" />
             </div>
 
             <div className="relative">
-              <label htmlFor="password" className="sr-only">Password</label>
+              <label htmlFor="password" className="sr-only">{t('register.password')}</label>
               <input id="password" type={showPw ? 'text' : 'password'} required value={password} onChange={(e) => setPassword(e.target.value)}
                 className="block w-full rounded-xl border border-gray-200 px-4 py-2.5 pr-10 text-sm shadow-sm placeholder:text-gray-400 focus:border-gray-400 focus:outline-none focus:ring-0"
-                placeholder="Password" autoComplete="new-password" />
+                placeholder={t('register.password')} autoComplete="new-password" />
               <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                 {showPw ? (
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
@@ -215,18 +208,18 @@ export default function RegisterPage() {
               <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)}
                 className="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500" />
               <span className="text-xs text-gray-500">
-                I agree to the <a href="#" className="text-gray-700 underline hover:text-gray-900">Terms of Service</a> and the <a href="#" className="text-gray-700 underline hover:text-gray-900">Privacy Policy</a>.
+                {t('register.agree')} <a href="#" className="text-gray-700 underline hover:text-gray-900">{t('register.terms')}</a> and the <a href="#" className="text-gray-700 underline hover:text-gray-900">{t('register.privacy')}</a>.
               </span>
             </label>
 
             <button type="submit" disabled={loading || !agree}
               className="w-full rounded-xl bg-black px-4 py-2.5 text-sm font-semibold text-white hover:bg-gray-800 transition-colors disabled:opacity-40">
-              {loading ? 'Creating account...' : 'Create Account'}
+              {loading ? t('register.creating') : t('register.createAccount')}
             </button>
 
             <p className="pt-2 text-center text-xs text-gray-500">
-              Already have an account?{' '}
-              <a href="/login" className="underline text-gray-700 hover:text-gray-900">Log in</a>
+              {t('register.haveAccount')}{' '}
+              <a href="/login" className="underline text-gray-700 hover:text-gray-900">{t('register.logIn')}</a>
             </p>
           </form>
         </div>
