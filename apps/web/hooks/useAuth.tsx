@@ -9,15 +9,17 @@ interface User {
   name: string;
   tenantId: string;
   role: string;
+  settings?: any;
 }
 
 interface AuthContextType {
-  user: User | null;
+  user: any;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -29,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (api.isAuthenticated()) {
       api.getMe()
-        .then((res: any) => setUser(res.data))
+        .then((user: any) => setUser(user))
         .catch(() => api.clearTokens())
         .finally(() => setLoading(false));
     } else {
@@ -49,6 +51,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(result.user);
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    try {
+      const u = await api.getMe();
+      setUser(u);
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const logout = useCallback(() => {
     api.clearTokens();
     setUser(null);
@@ -56,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, register, logout, isAuthenticated: !!user }}
+      value={{ user, loading, login, register, logout, refreshUser, isAuthenticated: !!user }}
     >
       {children}
     </AuthContext.Provider>

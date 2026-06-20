@@ -1,0 +1,51 @@
+
+> web@0.0.1 build /Users/torutano/Downloads/GON＿AI/apps/web
+> next build
+
+  ▲ Next.js 14.2.35
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/21) ...
+   Generating static pages (5/21) 
+   Generating static pages (10/21) 
+   Generating static pages (15/21) 
+ ✓ Generating static pages (21/21)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+┌ ○ /                                    138 B          87.4 kB
+├ ○ /_not-found                          872 B          88.2 kB
+├ ○ /dashboard                           3.52 kB        99.5 kB
+├ ○ /dashboard/agents                    4.1 kB         91.4 kB
+├ ○ /dashboard/analytics                 3.51 kB        90.8 kB
+├ ○ /dashboard/billing                   3.83 kB        91.1 kB
+├ ○ /dashboard/calendar                  3.17 kB        99.2 kB
+├ ○ /dashboard/campaigns                 2.52 kB        98.6 kB
+├ ƒ /dashboard/campaigns/[id]            3.3 kB         99.3 kB
+├ ○ /dashboard/campaigns/new             2.54 kB        89.8 kB
+├ ○ /dashboard/chat                      2.35 kB        89.7 kB
+├ ○ /dashboard/integrations              3.11 kB        90.4 kB
+├ ○ /dashboard/posts                     2.92 kB        90.2 kB
+├ ○ /dashboard/posts/new                 3.05 kB        90.4 kB
+├ ○ /dashboard/settings                  2.93 kB        90.2 kB
+├ ○ /integrations/callback               2.32 kB        89.6 kB
+├ ○ /login                               4.81 kB        92.1 kB
+├ ○ /onboarding                          4.08 kB        91.4 kB
+├ ○ /pricing                             3.73 kB          91 kB
+└ ○ /register                            5.34 kB        92.6 kB
++ First Load JS shared by all            87.3 kB
+  ├ chunks/906-dc87cb26b00e5399.js       31.7 kB
+  ├ chunks/eae77dc4-cd02ecdc8444cdfb.js  53.6 kB
+  └ other shared chunks (total)          1.95 kB
+
+
+ƒ Middleware                             26.6 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

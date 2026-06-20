@@ -1,9 +1,9 @@
 FROM node:22-alpine AS base
+RUN npm install -g pnpm@10
 
 FROM base AS builder
-RUN npm install -g pnpm@10
 WORKDIR /app
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/api/package.json apps/api/
 COPY packages/shared/package.json packages/shared/
 RUN pnpm install --frozen-lockfile
@@ -12,11 +12,12 @@ RUN pnpm --filter api build
 
 FROM base AS runner
 WORKDIR /app
-RUN npm install -g pnpm@10
 COPY --from=builder /app/apps/api/dist ./dist
-COPY --from=builder /app/apps/api/node_modules ./node_modules
 COPY --from=builder /app/apps/api/prisma ./prisma
 COPY --from=builder /app/node_modules/.pnpm ./node_modules/.pnpm
+COPY --from=builder /app/apps/api/package.json ./package.json
+COPY --from=builder /app/packages ./packages
+RUN npx prisma generate
 
 EXPOSE 3001
 ENV PORT=3001

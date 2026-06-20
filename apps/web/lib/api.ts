@@ -17,12 +17,14 @@ class ApiClient {
     this.accessToken = accessToken;
     localStorage.setItem('accessToken', accessToken);
     localStorage.setItem('refreshToken', refreshToken);
+    document.cookie = `accessToken=${accessToken}; path=/; max-age=604800; SameSite=Lax`;
   }
 
   clearTokens() {
     this.accessToken = null;
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
+    document.cookie = 'accessToken=; path=/; max-age=0';
   }
 
   getAccessToken() {
@@ -78,7 +80,11 @@ class ApiClient {
       throw new ApiError(response.status, err);
     }
 
-    return response.json();
+    const json = await response.json();
+    if (json && typeof json === 'object' && 'data' in json && !('meta' in json)) {
+      return json.data as T;
+    }
+    return json;
   }
 
   private async tryRefresh(): Promise<boolean> {
@@ -102,6 +108,13 @@ class ApiClient {
     }
   }
 
+  async changePassword(currentPassword: string, newPassword: string) {
+    return this.request<{ success: boolean }>('/users/me/password', {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+  }
+
   // Auth
   async register(email: string, password: string, name: string) {
     return this.request<{ user: any; accessToken: string; refreshToken: string }>('/auth/register', {
@@ -118,12 +131,12 @@ class ApiClient {
   }
 
   // Users
-  async getMe() {
-    return this.request<{ data: any }>('/users/me');
+  async getMe(): Promise<any> {
+    return this.request<any>('/users/me');
   }
 
-  async updateMe(data: { name?: string; settings?: any }) {
-    return this.request<{ data: any }>('/users/me', {
+  async updateMe(data: { name?: string; settings?: any }): Promise<any> {
+    return this.request<any>('/users/me', {
       method: 'PATCH',
       body: JSON.stringify(data),
     });
@@ -134,10 +147,21 @@ class ApiClient {
     return this.request<any[]>('/integrations');
   }
 
+  async getPlatformStatus() {
+    return this.request<Record<string, { configured: boolean; demoAvailable: boolean }>>('/integrations/status');
+  }
+
   async getAuthUrl(platform: string, redirectUri: string) {
     return this.request<{ authUrl: string; state: string }>('/integrations/auth-url', {
       method: 'POST',
       body: JSON.stringify({ platform, redirectUri }),
+    });
+  }
+
+  async demoConnect(platform: string) {
+    return this.request('/integrations/demo-connect', {
+      method: 'POST',
+      body: JSON.stringify({ platform }),
     });
   }
 
@@ -161,7 +185,7 @@ class ApiClient {
     return this.request<{ data: any }>(`/posts/${id}`);
   }
 
-  async createPost(data: { contentText: string; platform: string; integrationAccountId?: string }) {
+  async createPost(data: { contentText: string; platform: string; integrationAccountId?: string; scheduledAt?: string }) {
     return this.request<{ data: any }>('/posts', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -174,6 +198,10 @@ class ApiClient {
 
   async publishPost(id: string) {
     return this.request(`/posts/${id}/publish`, { method: 'POST' });
+  }
+
+  async deletePost(id: string) {
+    return this.request(`/posts/${id}`, { method: 'DELETE' });
   }
 
   // Agents
@@ -196,10 +224,53 @@ class ApiClient {
     });
   }
 
+  // Campaigns
+  async getCampaigns() {
+    return this.request<any[]>('/campaigns');
+  }
+
+  async getCampaign(id: string) {
+    return this.request<any>(`/campaigns/${id}`);
+  }
+
+  async createCampaign(data: { name: string; goal?: string; startDate?: string; endDate?: string; budget?: number }) {
+    return this.request<any>('/campaigns', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateCampaign(id: string, data: { name?: string; goal?: string; startDate?: string; endDate?: string; budget?: number; status?: string }) {
+    return this.request<any>(`/campaigns/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteCampaign(id: string) {
+    return this.request(`/campaigns/${id}`, { method: 'DELETE' });
+  }
+
   // Feed
   async getFeed(cursor?: string, limit?: string) {
     return this.request<{ data: any[]; meta: any }>('/feed', {
       params: { cursor, limit },
+    });
+  }
+
+  // Billing
+  async getBillingSubscription() {
+    return this.request<any>('/billing');
+  }
+
+  async getBillingPlans() {
+    return this.request<any[]>('/billing/plans');
+  }
+
+  async upgradePlan(plan: string) {
+    return this.request<any>('/billing/upgrade', {
+      method: 'POST',
+      body: JSON.stringify({ plan }),
     });
   }
 }

@@ -29,6 +29,7 @@ enum Platform {
   YOUTUBE
   FACEBOOK
   LINKEDIN
+  THREADS
 }
 
 enum IntegrationStatus {
@@ -87,6 +88,7 @@ model Tenant {
   feedEvents       FeedEvent[]
   policyViolations PolicyViolation[]
   auditLogs        AuditLog[]
+  subscription     Subscription?
 
   @@map("tenants")
 }
@@ -267,6 +269,24 @@ model FeedEvent {
   tenant Tenant @relation(fields: [tenantId], references: [id])
 
   @@map("feed_events")
+}
+
+model Subscription {
+  id                   String    @id @default(uuid())
+  tenantId             String    @unique @map("tenant_id")
+  stripeCustomerId     String?   @map("stripe_customer_id")
+  stripeSubscriptionId String?   @map("stripe_subscription_id")
+  plan                 String    @default("free")
+  status               String    @default("active")
+  currentPeriodStart   DateTime? @map("current_period_start")
+  currentPeriodEnd     DateTime? @map("current_period_end")
+  cancelAtPeriodEnd    Boolean   @default(false) @map("cancel_at_period_end")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@map("subscriptions")
 }
 
 model AuditLog {

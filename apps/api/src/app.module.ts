@@ -9,6 +9,10 @@ import { AgentModule } from './modules/agent/agent.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { FeedModule } from './modules/feed/feed.module';
 import { GovernanceModule } from './modules/governance/governance.module';
+import { BillingModule } from './modules/billing/billing.module';
+import { CampaignModule } from './modules/campaign/campaign.module';
+import { SchedulerModule } from './modules/scheduler/scheduler.module';
+import { MonitoringModule } from './modules/monitoring/monitoring.module';
 
 @Module({
   imports: [
@@ -22,6 +26,10 @@ import { GovernanceModule } from './modules/governance/governance.module';
     ChatModule,
     FeedModule,
     GovernanceModule,
+    BillingModule,
+    CampaignModule,
+    SchedulerModule,
+    MonitoringModule,
   ],
 })
 export class AppModule {}

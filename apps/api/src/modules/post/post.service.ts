@@ -2,6 +2,11 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from '../../prisma/prisma.service';
 import { XConnector } from '../integration/connectors/x.connector';
 import { InstagramConnector } from '../integration/connectors/instagram.connector';
+import { TikTokConnector } from '../integration/connectors/tiktok.connector';
+import { YouTubeConnector } from '../integration/connectors/youtube.connector';
+import { LinkedInConnector } from '../integration/connectors/linkedin.connector';
+import { ThreadsConnector } from '../integration/connectors/threads.connector';
+import { PlatformFormatter } from './platform-formatter.service';
 
 @Injectable()
 export class PostService {
@@ -9,6 +14,11 @@ export class PostService {
     private readonly prisma: PrismaService,
     private readonly xConnector: XConnector,
     private readonly instagramConnector: InstagramConnector,
+    private readonly tiktokConnector: TikTokConnector,
+    private readonly youtubeConnector: YouTubeConnector,
+    private readonly linkedinConnector: LinkedInConnector,
+    private readonly threadsConnector: ThreadsConnector,
+    private readonly formatter: PlatformFormatter,
   ) {}
 
   async findByTenant(tenantId: string, options: {
@@ -53,8 +63,11 @@ export class PostService {
     integrationAccountId?: string;
     scheduledAt?: string;
   }) {
-    if (data.contentText.length > 280 && data.platform === 'X') {
-      throw new BadRequestException('X posts max 280 characters');
+    const formatted = this.formatter.formatContent(data.platform, data.contentText);
+    const limits = this.formatter.getLimits(data.platform);
+
+    if (formatted.length > limits.maxChars) {
+      throw new BadRequestException(`${data.platform} posts max ${limits.maxChars} characters`);
     }
 
     const post = await this.prisma.post.create({
@@ -62,10 +75,10 @@ export class PostService {
         tenantId,
         integrationAccountId: data.integrationAccountId || null,
         platform: data.platform as any,
-        contentText: data.contentText,
+        contentText: formatted,
         scheduledAt: data.scheduledAt ? new Date(data.scheduledAt) : null,
         isAiGenerated: false,
-        status: 'DRAFT',
+        status: data.scheduledAt ? 'SCHEDULED' : 'DRAFT',
       },
     });
 
@@ -73,12 +86,13 @@ export class PostService {
   }
 
   async update(id: string, data: { contentText?: string; scheduledAt?: string }) {
-    await this.findById(id);
+    const post = await this.findById(id);
+    const formatted = data.contentText ? this.formatter.formatContent(post.data.platform, data.contentText) : undefined;
     return this.prisma.post.update({
       where: { id },
       data: {
-        ...(data.contentText && { contentText: data.contentText }),
-        ...(data.scheduledAt && { scheduledAt: new Date(data.scheduledAt) }),
+        ...(formatted && { contentText: formatted }),
+        ...(data.scheduledAt && { scheduledAt: new Date(data.scheduledAt), status: 'SCHEDULED' }),
       },
     });
   }
@@ -97,43 +111,65 @@ export class PostService {
     const post = await this.findById(id);
     const p = post.data;
 
-    if (p.status !== 'APPROVED' && p.status !== 'DRAFT') {
+    if (p.status !== 'APPROVED' && p.status !== 'SCHEDULED' && p.status !== 'DRAFT' && p.status !== 'PUBLISHING') {
       throw new BadRequestException(`Cannot publish post with status ${p.status}`);
     }
 
-    if (p.integrationAccountId) {
-      const account = await this.prisma.integrationAccount.findUnique({
-        where: { id: p.integrationAccountId },
-      });
-      if (!account) throw new NotFoundException('Integration account not found');
+    await this.prisma.post.update({ where: { id }, data: { status: 'PUBLISHING' } });
 
+    try {
       let result: { postId: string };
 
-      switch (p.platform) {
-        case 'X':
-          result = await this.xConnector.publishPost(account.accessToken, p.contentText);
-          break;
-        case 'INSTAGRAM':
-          result = await this.instagramConnector.publishPost(
-            account.accessToken,
-            account.platformUserId || '',
-            p.contentText,
-          );
-          break;
-        default:
-          throw new BadRequestException(`Publishing not supported for platform: ${p.platform}`);
+      if (p.integrationAccountId) {
+        const account = await this.prisma.integrationAccount.findUnique({
+          where: { id: p.integrationAccountId },
+        });
+        if (!account) throw new NotFoundException('Integration account not found');
+
+        const formatted = this.formatter.formatContent(p.platform, p.contentText);
+
+        switch (p.platform) {
+          case 'X':
+            result = await this.xConnector.publishPost(account.accessToken, formatted);
+            break;
+          case 'INSTAGRAM':
+            result = await this.instagramConnector.publishPost(
+              account.accessToken, account.platformUserId || '', formatted,
+            );
+            break;
+          case 'TIKTOK':
+            result = await this.tiktokConnector.publishPost(account.accessToken, formatted);
+            break;
+          case 'YOUTUBE':
+            result = await this.youtubeConnector.publishPost(account.accessToken, formatted);
+            break;
+          case 'LINKEDIN':
+            result = await this.linkedinConnector.publishPost(account.accessToken, formatted);
+            break;
+          case 'THREADS':
+            result = await this.threadsConnector.publishPost(account.accessToken, formatted);
+            break;
+          default:
+            throw new BadRequestException(`Publishing not supported for platform: ${p.platform}`);
+        }
+
+        return this.prisma.post.update({
+          where: { id },
+          data: { status: 'PUBLISHED', postedAt: new Date(), platformPostId: result.postId },
+        });
       }
 
       return this.prisma.post.update({
         where: { id },
-        data: { status: 'PUBLISHED', postedAt: new Date(), platformPostId: result.postId },
+        data: { status: 'PUBLISHED', postedAt: new Date() },
       });
+    } catch (err: any) {
+      await this.prisma.post.update({
+        where: { id },
+        data: { status: 'FAILED' },
+      });
+      throw err;
     }
-
-    return this.prisma.post.update({
-      where: { id },
-      data: { status: 'PUBLISHED', postedAt: new Date() },
-    });
   }
 
   async schedule(id: string, scheduledAt: Date) {
@@ -142,5 +178,9 @@ export class PostService {
       where: { id },
       data: { scheduledAt, status: 'SCHEDULED' },
     });
+  }
+
+  getPlatformLimits(platform: string) {
+    return this.formatter.getLimits(platform);
   }
 }

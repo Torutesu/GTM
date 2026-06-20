@@ -37,7 +37,7 @@ export class AuthService {
     });
 
     const tokens = this.generateTokens(user.id, user.tenantId, user.role);
-    return { user: { id: user.id, email: user.email, name: user.name, tenantId: user.tenantId }, ...tokens };
+    return { user: { id: user.id, email: user.email, name: user.name, tenantId: user.tenantId, settings: user.settings }, ...tokens };
   }
 
   async login(email: string, password: string) {
@@ -48,7 +48,7 @@ export class AuthService {
     if (!passwordValid) throw new UnauthorizedException('Invalid credentials');
 
     const tokens = this.generateTokens(user.id, user.tenantId, user.role);
-    return { user: { id: user.id, email: user.email, name: user.name, tenantId: user.tenantId }, ...tokens };
+    return { user: { id: user.id, email: user.email, name: user.name, tenantId: user.tenantId, settings: user.settings }, ...tokens };
   }
 
   async refresh(refreshToken: string) {

@@ -4,6 +4,11 @@ import { PostService } from '../post.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { XConnector } from '../../integration/connectors/x.connector';
 import { InstagramConnector } from '../../integration/connectors/instagram.connector';
+import { TikTokConnector } from '../../integration/connectors/tiktok.connector';
+import { YouTubeConnector } from '../../integration/connectors/youtube.connector';
+import { LinkedInConnector } from '../../integration/connectors/linkedin.connector';
+import { ThreadsConnector } from '../../integration/connectors/threads.connector';
+import { PlatformFormatter } from '../platform-formatter.service';
 
 describe('PostService', () => {
   let service: PostService;
@@ -32,6 +37,18 @@ describe('PostService', () => {
     handleCallback: jest.fn(),
   };
 
+  const mockTikTokConnector = { publishPost: jest.fn() };
+  const mockYouTubeConnector = { publishPost: jest.fn() };
+  const mockLinkedInConnector = { publishPost: jest.fn() };
+  const mockThreadsConnector = { publishPost: jest.fn() };
+  const mockPlatformFormatter = {
+    formatContent: jest.fn((_, text) => text),
+    getLimits: jest.fn((platform: string) => {
+      const limits: Record<string, number> = { X: 280, INSTAGRAM: 2200, TIKTOK: 2200, YOUTUBE: 5000, LINKEDIN: 3000, THREADS: 500 };
+      return { maxChars: limits[platform] || 5000 };
+    }),
+  };
+
   beforeEach(async () => {
     jest.clearAllMocks();
     const module = await Test.createTestingModule({
@@ -40,6 +57,11 @@ describe('PostService', () => {
         { provide: PrismaService, useValue: mockPrisma },
         { provide: XConnector, useValue: mockXConnector },
         { provide: InstagramConnector, useValue: mockInstagramConnector },
+        { provide: TikTokConnector, useValue: mockTikTokConnector },
+        { provide: YouTubeConnector, useValue: mockYouTubeConnector },
+        { provide: LinkedInConnector, useValue: mockLinkedInConnector },
+        { provide: ThreadsConnector, useValue: mockThreadsConnector },
+        { provide: PlatformFormatter, useValue: mockPlatformFormatter },
       ],
     }).compile();
 
@@ -139,10 +161,10 @@ describe('PostService', () => {
       expect(mockXConnector.publishPost).toHaveBeenCalledWith('x-access-token', 'Tweet content');
     });
 
-    it('fails to publish SCHEDULED post without approval', async () => {
+    it('fails to publish CANCELLED post', async () => {
       mockPrisma.post.findUnique.mockResolvedValue({
         id: 'post-1',
-        status: 'SCHEDULED',
+        status: 'CANCELLED',
         platform: 'X',
         contentText: 'Test',
         integrationAccountId: null,

@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '../../hooks/useAuth';
 import { DashboardNav } from '../../components/DashboardNav';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, loading, user, logout } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -15,10 +16,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [loading, isAuthenticated, router]);
 
+  useEffect(() => {
+    if (!loading && isAuthenticated && user) {
+      const settings = (user as any).settings || {};
+      const onboardingDone = settings?.onboardingDone;
+      if (!onboardingDone && pathname !== '/onboarding') {
+        router.push('/onboarding');
+      }
+    }
+  }, [loading, isAuthenticated, user, pathname, router]);
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="text-gray-500">Loading...</div>
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-200 border-t-brand-600" />
       </div>
     );
   }
@@ -28,7 +39,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex min-h-screen">
       <DashboardNav user={user!} onLogout={logout} />
-      <main className="flex-1 p-8">{children}</main>
+      <main className="flex-1 overflow-y-auto p-8">{children}</main>
     </div>
   );
 }

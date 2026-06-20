@@ -16,6 +16,11 @@ export class IntegrationController {
     return this.integrationService.findByTenant(user.tenantId);
   }
 
+  @Get('status')
+  async status() {
+    return this.integrationService.getPlatformStatus();
+  }
+
   @Post('auth-url')
   async getAuthUrl(
     @CurrentUser() user: { id: string; tenantId: string },
@@ -30,6 +35,14 @@ export class IntegrationController {
     @Body() dto: CallbackDto,
   ) {
     return this.integrationService.handleCallback(user.tenantId, dto.platform, dto.code, dto.state);
+  }
+
+  @Post('demo-connect')
+  async demoConnect(
+    @CurrentUser() user: { id: string; tenantId: string },
+    @Body() body: { platform: string },
+  ) {
+    return this.integrationService.createDemoConnection(user.tenantId, user.id, body.platform);
   }
 
   @Get(':id')
