@@ -61,6 +61,7 @@ class ApiClient {
     const response = await fetch(url, { ...fetchOptions, headers });
 
     if (response.status === 401) {
+      const errBody = await response.text().catch(() => '');
       const refreshed = await this.tryRefresh();
       if (refreshed) {
         headers['Authorization'] = `Bearer ${this.accessToken}`;
@@ -72,7 +73,7 @@ class ApiClient {
         return retryResponse.json();
       }
       this.clearTokens();
-      throw new ApiError(401, 'Unauthorized');
+      throw new ApiError(401, errBody || 'Unauthorized');
     }
 
     if (!response.ok) {
